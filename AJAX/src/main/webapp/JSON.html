@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="demo"></div>
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+    //定义JSON
+    var json = {
+        "name":"zhangsan",
+        "age":23,
+        "addr":["北京","上海","西安"]
+    };
+
+    window.onload = function () {
+        let user = {
+            name:"zhangsan",
+            age:23,
+            addr:["北京","上海","西安"]
+        };
+        axios({
+            method:"post",
+            url:"http://localhost:8080/AJAX/fastJsonServlet",
+            data:user
+        }).then(function(resp){
+            let users = resp.data;
+            let data="";
+            for(let i = 0; i<users.length; i++){
+                let user = users[i];
+                data += "name:" + user.name + " " +
+                    "age:" + user.age + " " +
+                    "addr:" + user.addr + "</br>";
+            }
+            document.getElementById("demo").innerHTML = data;
+        })
+    }
+
+
+</script>
+</body>
+</html>

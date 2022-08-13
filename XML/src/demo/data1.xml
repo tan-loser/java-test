@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<书架 xmlns="http://www.test.cn"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.test.cn data.xsd">
+    <书>
+        <书名>三体</书名>
+        <作者>11.2</作者>
+        <售价>80.0</售价>
+    </书>
+    <书>
+        <书名>活着</书名>
+        <作者>余华</作者>
+        <售价>40</售价>
+    </书>
+</书架>

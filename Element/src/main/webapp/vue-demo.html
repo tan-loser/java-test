@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div id="app">
+<!--        v-model 为表单元素 上创建双向绑定值-->
+        <input name="username" v-model="username">{{username}}
+        <br/>
+<!--        v-bind 为标签绑定 属性值，可简化写成：-->
+<!--        下面这一个可以运行，单在idea中会显示报错，可以不用管-->
+        <a v-bind:href="url">点击1</a>
+        <a :href="url">点击</a>
+        <br/>
+<!--        v-on 为标签绑定事件，可以简化成 @ -->
+        <input type="button" value="一个按钮" v-on:click="show()">
+        <input type="button" value="一个按钮" @click="show()">
+        <br/>
+<!--        条件判断指令，当为true时才在页面渲染-->
+        <div v-if="count == 3">div1</div>
+        <div v-else-if="count == 4">div2</div>
+        <div v-else>div3</div>
+        <hr/>
+        <input v-model="count">
+        <br/>
+<!--        v-show 根据条件显示，与v-if 区别时修改属性 display的值显示 -->
+        <div v-show="count == 3">v-show</div>
+<!--        v-for 列表渲染，遍历容器的元素或者对象的属性 index 从0开始-->
+        <div v-for="addr in addrs">
+            {{addr}}<br/>
+        </div>
+        <div v-for="(addr,index) in addrs">
+            {{index}}--{{addr}}<br/>
+        </div>
+
+
+
+    </div>
+
+
+
+<!--使用Vue需要先导入vue.js-->
+<script src="../../../../AJAX/src/main/webapp/js/vue.js"></script>
+<script>
+<!--    创建核心对象-->
+    new Vue({
+        //选择作用范围
+        el:"#app",
+
+        data(){
+            return {
+                username:"",
+                url:"https://www.baidu.com",
+                count:1,
+                addrs:["上海","北京","西安"]
+            }
+        },
+        mounted(){
+        },
+        methods: {
+            show(){
+                alert("我被点击了一下");
+            },
+        }
+    });
+</script>
+</body>
+</html>

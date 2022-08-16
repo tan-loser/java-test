@@ -82,6 +82,12 @@ public class Brand {
     public Integer getStatus() {
         return status;
     }
+    public String getStatusStr() {
+        if(status == null){
+            return "未知";
+        }
+        return status == 0 ? "禁用" : "启用";
+    }
 
     public void setStatus(Integer status) {
         this.status = status;

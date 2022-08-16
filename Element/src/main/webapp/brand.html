@@ -19,15 +19,15 @@
 
 <div id="app">
 <!--    搜索表单-->
-    <el-form :inline="true" :model="reachBrand" class="demo-form-inline">
+    <el-form :inline="true" :model="brand" class="demo-form-inline">
         <el-form-item label="企业名称">
-            <el-input v-model="reachBrand.companyName" placeholder="企业名称"></el-input>
+            <el-input v-model="brand.companyName" placeholder="企业名称"></el-input>
         </el-form-item>
         <el-form-item label="品牌名称">
-            <el-input v-model="reachBrand.brandName" placeholder="品牌名称"></el-input>
+            <el-input v-model="brand.brandName" placeholder="品牌名称"></el-input>
         </el-form-item>
         <el-form-item label="当前状态">
-            <el-select v-model="reachBrand.status" placeholder="当前状态">
+            <el-select v-model="brand.status" placeholder="当前状态">
                 <el-option label="启用" value="1"></el-option>
                 <el-option label="禁用" value="0"></el-option>
             </el-select>
@@ -36,15 +36,11 @@
             <el-button type="primary" @click="search">查询</el-button>
         </el-form-item>
     </el-form>
-<!--    新增 批量删除-->
-    <el-row>
-        <el-button type="danger" plain>批量删除</el-button>
-        <el-button type="primary" plain @click="addBrand">新增</el-button>
-    </el-row>
 <!--    表单 对话框-->
     <el-dialog
             :title="title"
             :visible.sync="dialogVisible"
+            @close="closeDialog"
             width="30%">
         <el-form ref="form" :model="brand" label-width="80px">
             <el-form-item label="品牌名称">
@@ -70,6 +66,11 @@
         </el-form>
     </el-dialog>
 
+    <!--    新增 批量删除-->
+    <el-row>
+        <el-button type="danger" plain @click="deleteByIds">批量删除</el-button>
+        <el-button type="primary" plain @click="addBrand">新增</el-button>
+    </el-row>
 <!--    表格-->
     <el-table
             :data="tableData"
@@ -100,7 +101,7 @@
                 align="center">
         </el-table-column>
         <el-table-column
-                prop="status"
+                prop="statusStr"
                 label="当前状态"
                 align="center">
         </el-table-column>
@@ -118,10 +119,10 @@
             @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
             :current-page="currentPage"
-            :page-sizes="[100, 200, 300, 400]"
-            :page-size="100"
+            :page-sizes="[5, 10, 15, 20, 30, 40]"
+            :page-size="pageSize"
             layout="total, sizes, prev, pager, next, jumper"
-            :total="400">
+            :total="totalCount">
     </el-pagination>
 
 </div>
@@ -138,8 +139,6 @@
                 title:"",
                 //表格数据
                 tableData: [],
-                //复选框选择的对象数据
-                multipleSelection: [],
                 //品牌表单数据（新增,修改）
                 brand: {
                     id: '',
@@ -147,28 +146,34 @@
                     brandName: '',
                     ordered: '',
                     description:'',
-                    status: ''
-                },//品牌表单数据（查询）
-                reachBrand: {
-                    id: '',
-                    companyName: '',
-                    brandName: '',
-                    ordered: '',
-                    description:'',
-                    status: ''
+                    status: '0'
                 },
                 //对话框是否展示的标记
                 dialogVisible: false,
+                //复选框选择的对象数据
+                multipleSelection: [],
+                //被选中的id
+                selectedIds:[],
                 //当前页数
-                currentPage: 4
+                currentPage: 1,
+                //单页数据条数
+                pageSize: 10,
+                //数据总条数
+                totalCount:''
 
             }
         },
         mounted(){
             //当页面加载完成后，发送异步请求，获取数据
-            this.selectAll();
+            // this.selectAll();
+            this.selectByPage();
         },
         methods: {
+            closeDialog(){
+                // console.log("close");
+                //关闭对话框时，清空表单
+                this.brand = this.$options.data().brand;
+            },
             //查询所有数据的方法
             selectAll(){
                 let _this = this;
@@ -177,6 +182,17 @@
                     url:"http://localhost:8080/Element/brand/selectAll"
                 }).then(function(resp){
                     _this.tableData = resp.data;
+                })
+            },
+            //查询分页数据的方法
+            selectByPage(){
+                let _this = this;
+                axios({
+                    method : "get",
+                    url:"http://localhost:8080/Element/brand/selectByPage?currentPage=" + _this.currentPage + "&pageSize=" + _this.pageSize
+                }).then(function(resp){
+                    _this.tableData = resp.data.rows;
+                    _this.totalCount = resp.data.totalCount;
                 })
             },
             tableRowClassName({row, rowIndex}) {
@@ -191,12 +207,78 @@
             handleSelectionChange(val) {
                 this.multipleSelection = val;
             },
+            //批量删除
+            deleteByIds(){
+                this.$confirm('此操作将永久删除这些数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //获取multipleSelection数组对象中获取相应的id
+                    for(let i = 0; i < this.multipleSelection.length; i++){
+                        let selectionElement = this.multipleSelection[i];
+                        this.selectedIds[i] = selectionElement.id;
+                    }
+
+                    //发送批量删除请求
+                    let _this = this;
+                    axios({
+                        method:"post",
+                        url:"http://localhost:8080/Element/brand/deleteByIds",
+                        data: _this.selectedIds
+                    }).then(function(resp){
+                        if(resp.data == "success"){
+                            //删除成功
+                            //重新查询数据
+                            _this.selectByPage();
+                            //弹出消息提示
+                            _this.$message({
+                                message:'恭喜你，删除成功!',
+                                type:"success"
+                            });
+                        }
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+
+
+
+            },
             //搜索表单提交
             search() {
                 // console.log(this.brand);
+
+                // let _this = this;
+                // axios({
+                //     method: 'post',
+                //     url: "http://localhost:8080/Element/brand/selectByPageAndCondition?currentPage=" + _this.currentPage + "&pageSize=" + _this.pageSize,
+                //     data: _this.brand
+                // }).then(function(resp){
+                //     _this.tableData = resp.data.rows;
+                //     _this.totalCount = resp.data.totalCount;
+                // })
+
+                //由于data在函数内，可以直接用this.brand
+                //当.then()内使用箭头函数时，也可以直接使用this
+                // let _this = this;
+                axios({
+                    method: 'post',
+                    url: "http://localhost:8080/Element/brand/selectByPageAndCondition?currentPage=" + this.currentPage + "&pageSize=" + this.pageSize,
+                    data: this.brand
+                }).then(resp => {
+                    this.tableData = resp.data.rows;
+                    this.totalCount = resp.data.totalCount;
+                })
+
             },
             //提交表单
             submitForm(){
+
+                // console.log(this.brand);
                 //发送添加数据的请求
                 var _this = this;
                 if(this.title == "新增"){
@@ -208,7 +290,7 @@
                         //添加成功
                         if(resp.data == "success"){
                             //刷新查询页面
-                            _this.selectAll();
+                            _this.selectByPage();
                             //关闭窗口
                             _this.dialogVisible = false;
                             //弹出消息提示
@@ -227,7 +309,7 @@
                         //添加成功
                         if(resp.data == "success"){
                             //刷新查询页面
-                            _this.selectAll();
+                            _this.selectByPage();
                             //关闭窗口
                             _this.dialogVisible = false;
 
@@ -244,10 +326,10 @@
             //新增表单
             addBrand(){
                 // console.log(this.brand);
-                this.brand={};
+                //关闭对话框时，清空表单
+                this.brand = this.$options.data().brand;
                 this.title="新增";
-                this.dialogVisible = true
-
+                this.dialogVisible = true;
             },
             updateBrand(row){
                 //发送修改请求
@@ -272,39 +354,53 @@
                 this.brand.status=row.status;
 
                 // console.log(row.status);
-                console.log(this.brand.status);
+                // console.log(this.brand.status);
 
                 //显示
                 this.dialogVisible = true;
 
             },
             deleteBrand(row){
-                //发送删除请求
-                // console.log(row);
-                //发送请求获得选定的数据
-                let _this = this;
-                axios({
-                    method:"get",
-                    url: "http://localhost:8080/Element/brand/deleteById?id=" + row.id
-                }).then(function(resp){
-                    if(resp.data == "success"){
-                        //刷新查询页面
-                        _this.selectAll();
-                        //弹出消息提示
-                        _this.$message({
-                            message: '恭喜你，删除成功!',
-                            type: 'success'
-                        });
-                    }
+                this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //发送删除请求
+                    // console.log(row);
+                    //发送请求获得选定的数据
+                    let _this = this;
+                    axios({
+                        method:"get",
+                        url: "http://localhost:8080/Element/brand/deleteById?id=" + row.id
+                    }).then(function(resp){
+                        if(resp.data == "success"){
+                            //刷新查询页面
+                            _this.selectByPage();
+                            //弹出消息提示
+                            _this.$message({
+                                message: '恭喜你，删除成功!',
+                                type: 'success'
+                            });
+                        }
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
                 });
+
             },
             //当页数大小改变
             handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
+                this.pageSize = val;
+                this.selectByPage();
             },
             //当当前页数改变
             handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
+                this.currentPage = val;
+                this.selectByPage();
             }
         },
 

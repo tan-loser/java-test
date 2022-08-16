@@ -2,6 +2,7 @@ package com.itheima.brand.web.servlet;
 
 import com.alibaba.fastjson.JSON;
 import com.itheima.brand.pojo.Brand;
+import com.itheima.brand.pojo.PageBean;
 import com.itheima.brand.service.BrandService;
 import com.itheima.brand.service.impl.BrandServiceImpl;
 
@@ -78,6 +79,55 @@ public class BrandServlet extends BaseServelt{
         brandService.deleteById(id);
 
         response.getWriter().write("success");
+    }
+    public void deleteByIds(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //接受id数组json
+        BufferedReader reader = request.getReader();
+        String str = reader.readLine(); //json 字符串
+
+        //转换成 数组
+        int[] ids = JSON.parseObject(str, int[].class);
+
+        //调用service添加批量删除
+        brandService.deleteByIds(ids);
+
+        response.getWriter().write("success");
+    }
+    public void selectByPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //获取当前页码 和 每页展示条数
+        int currentPage = Integer.parseInt(request.getParameter("currentPage"));
+        int pageSize = Integer.parseInt(request.getParameter("pageSize"));
+
+        //调用service 查询
+        PageBean<Brand> pageBean = brandService.selectByPage(currentPage, pageSize);
+
+        //转换为JSON
+        String jsonString = JSON.toJSONString(pageBean);
+
+        //返回数据
+        response.setContentType("text/json;charset=utf-8");
+        response.getWriter().write(jsonString);
+    }
+    public void selectByPageAndCondition(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //获取当前页码 和 每页展示条数
+        int currentPage = Integer.parseInt(request.getParameter("currentPage"));
+        int pageSize = Integer.parseInt(request.getParameter("pageSize"));
+        //接受查询条件
+        BufferedReader reader = request.getReader();
+        String str = reader.readLine(); //json 字符串
+
+        //转换成对象
+        Brand brand = JSON.parseObject(str, Brand.class);
+
+        //调用service 查询
+        PageBean<Brand> pageBean = brandService.selectByPageAndCondition(currentPage, pageSize,brand);
+
+        //转换为JSON
+        String jsonString = JSON.toJSONString(pageBean);
+
+        //返回数据
+        response.setContentType("text/json;charset=utf-8");
+        response.getWriter().write(jsonString);
     }
 
 }

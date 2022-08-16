@@ -1,6 +1,7 @@
 package com.itheima.brand.service;
 
 import com.itheima.brand.pojo.Brand;
+import com.itheima.brand.pojo.PageBean;
 
 import java.util.List;
 
@@ -29,8 +30,26 @@ public interface BrandService {
     Brand selectById(int id);
 
     /**
-     * 通过id删除数据
+     * 通过id 删除数据
      * @param id
      */
     void deleteById(int id);
+    /**
+     * 通过id 批量删除数据
+     * @param id
+     */
+    void deleteByIds(int[] id);
+    /**
+     * 获得分页查询数据 和 总数据条数
+     * @param currentPage 当前页码
+     * @param pageSize 每页展示条数
+     */
+    PageBean<Brand> selectByPage(int currentPage, int pageSize);
+    /**
+     * 获得 分页条件 查询数据 和 总数据条数
+     * @param currentPage 当前页码
+     * @param pageSize 每页展示条数
+     * @param brand 条件
+     */
+    PageBean<Brand> selectByPageAndCondition(int currentPage, int pageSize,Brand brand);
 }

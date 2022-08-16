@@ -2,6 +2,7 @@ package com.itheima.brand.service.impl;
 
 import com.itheima.brand.mapper.BrandMapper;
 import com.itheima.brand.pojo.Brand;
+import com.itheima.brand.pojo.PageBean;
 import com.itheima.brand.service.BrandService;
 import com.itheima.brand.util.SqlSessionFactoryUtils;
 import org.apache.ibatis.session.SqlSession;
@@ -85,5 +86,68 @@ public class BrandServiceImpl implements BrandService {
 
         //释放资源
         sqlSession.close();
+    }
+
+    public void deleteByIds(int[] id) {
+        //获取SqlSession对象
+        SqlSession sqlSession = factory.openSession();
+        //获取BrandMapper
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+
+        //调用方法
+        mapper.deleteByIds(id);
+        sqlSession.commit();
+
+        //释放资源
+        sqlSession.close();
+
+    }
+
+    public PageBean<Brand> selectByPageAndCondition(int currentPage, int pageSize, Brand brand) {
+        //获取SqlSession对象
+        SqlSession sqlSession = factory.openSession();
+        //获取BrandMapper
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+
+        PageBean<Brand> pageBean = new PageBean<Brand>();
+        //计算开始索引
+        int begin = (currentPage - 1) * pageSize;
+        int size = pageSize;
+        //处理brand,模糊表达式
+        String brandName = brand.getBrandName();
+        if(brandName != null && brandName.length() > 0){
+            brand.setBrandName("%" + brandName + "%");
+        }
+        String companyName = brand.getCompanyName();
+        if(companyName != null && companyName.length() > 0){
+            brand.setCompanyName("%" + companyName + "%");
+        }
+        //调用方法，封装对象
+        pageBean.setRows(mapper.selectByPageAndCondition(begin, size,brand));
+        pageBean.setTotalCount(mapper.selectTotalByCondition(brand));
+
+        //释放资源
+        sqlSession.close();
+        return pageBean;
+    }
+
+    public PageBean<Brand> selectByPage(int currentPage, int pageSize) {
+        //获取SqlSession对象
+        SqlSession sqlSession = factory.openSession();
+        //获取BrandMapper
+        BrandMapper mapper = sqlSession.getMapper(BrandMapper.class);
+
+        PageBean<Brand> pageBean = new PageBean<Brand>();
+        //计算开始索引
+        int begin = (currentPage - 1) * pageSize;
+        int size = pageSize;
+        //调用方法，封装对象
+        pageBean.setRows(mapper.selectByPage(begin, size));
+        pageBean.setTotalCount(mapper.selectTotal());
+
+        //释放资源
+        sqlSession.close();
+        return pageBean;
+
     }
 }
